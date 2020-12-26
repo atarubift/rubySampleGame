@@ -5,8 +5,11 @@ GROUND_Y = 400
 
 # 主人公
 Image.register(:player, 'images/player.png')
-# アイテム
+# リンゴ
 Image.register(:apple, 'images/apple.png')
+# ボム
+Image.register(:bomb, 'images/bomb.png')
+
 
 # プレイヤーを表すクラス
 class Player < Sprite
@@ -31,12 +34,11 @@ end
 # アイテムを表すクラス
 class Item < Sprite
 
-  def initialize
-    image = Image[:apple]
+  def initialize(image)
     x = rand(Window.width - image.width) # x座標をランダムに設定
     y = 0
     super(x, y, image)
-    @speed_y = rand(9) * 4 # 落下速度をランダムに設定
+    @speed_y = rand(9) + 4 # 落下速度をランダムに設定
   end
 
   def update
@@ -44,6 +46,20 @@ class Item < Sprite
     if self.y > Window.height
       self.vanish
     end
+  end
+end
+
+# 加点アイテムのクラス
+class Apple < Item
+  def initialize
+    super(Image[:apple])
+  end
+end
+
+# 妨害アイテムのクラス
+class Bomb < Item
+  def initialize
+    super(Image[:bomb])
   end
 end
 
@@ -65,7 +81,12 @@ class Items
 
     # 消えた分を補充する
     (N - @items.size).times do
-      @items.push(Item.new)
+      # 40％の確率でリンゴ
+      if rand(1..100) < 40
+        @items.push(Apple.new)
+      else
+        @items.push(Bomb.new)
+      end
     end
   end
 
