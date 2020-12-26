@@ -9,6 +9,9 @@ Image.register(:player, 'images/player.png')
 Image.register(:apple, 'images/apple.png')
 # ボム
 Image.register(:bomb, 'images/bomb.png')
+# サウンド
+Sound.register(:get, 'sounds/get.wav')
+Sound.register(:explosion, 'sounds/explosion.wav')
 
 # スコアを記憶する
 GAME_INFO = {
@@ -66,6 +69,7 @@ class Apple < Item
 
   # 衝突した時の処理
   def hit
+    Sound[:get].play
     self.vanish
     GAME_INFO[:score] += 10
   end
@@ -82,6 +86,7 @@ class Bomb < Item
 
   # playerと衝突したとき呼ばれるメソッド
   def hit
+    Sound[:explosion].play
     self.vanish
     GAME_INFO[:score] = 0 
   end
