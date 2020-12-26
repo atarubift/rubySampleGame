@@ -10,6 +10,10 @@ Image.register(:apple, 'images/apple.png')
 # ボム
 Image.register(:bomb, 'images/bomb.png')
 
+# スコアを記憶する
+GAME_INFO = {
+   score: 0 #現在のスコア
+}
 
 # プレイヤーを表すクラス
 class Player < Sprite
@@ -19,6 +23,8 @@ class Player < Sprite
     y = GROUND_Y - Image[:player].height
     image = Image[:player]
     super(x, y, image)
+    # 当たり判定を円で設定
+    self.collision = [image.width / 2, image.height / 2, 16]
   end
 
   # 移動処理
@@ -53,6 +59,15 @@ end
 class Apple < Item
   def initialize
     super(Image[:apple])
+
+    # 衝突判定を円で設定
+    self.collision = [image.width / 2, image.height / 2, 56]
+  end
+
+  # 衝突した時の処理
+  def hit
+    self.vanish
+    GAME_INFO[:score] += 10
   end
 end
 
@@ -60,6 +75,15 @@ end
 class Bomb < Item
   def initialize
     super(Image[:bomb])
+
+    # 衝突判定を円で設定
+    self.collision = [image.width / 2, image.height / 2, 42]
+  end
+
+  # playerと衝突したとき呼ばれるメソッド
+  def hit
+    self.vanish
+    GAME_INFO[:score] = 0 
   end
 end
 
@@ -73,10 +97,10 @@ class Items
     @items = []
   end
 
-  def update
-    # 各スプライトのupdateメソッドを呼ぶ
-    Sprite.update(@items)
-    # vanishしたスプライトを配列から取り除く
+  def update(player)
+    @items.each { |x| x.update(player) }
+    # playerとitemが衝突しているかチェック。trueならhitが呼ばれる
+    Sprite.check(player, @items)
     Sprite.clean(@items)
 
     # 消えた分を補充する
@@ -109,11 +133,14 @@ Window.load_resources do
     player.update
 
     # アイテム作成・移動・削除
-    items.update
+    items.update(player)
 
     # 背景を描画
     Window.draw_box_fill(0, 0, Window.width, GROUND_Y, [128, 255, 255])
     Window.draw_box_fill(0, GROUND_Y, Window.width, Window.height, [0, 128, 0])
+
+    # scoreを描画
+    Window.draw_font(0,0, "SCORE: #{GAME_INFO[:score]}", Font.default)
 
     # プレイヤーキャラを描画
     player.draw
